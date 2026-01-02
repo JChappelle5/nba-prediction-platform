@@ -2,23 +2,16 @@
 	"name": "backend",
 	"version": "1.0.0",
 	"main": "index.js",
-
-
-	"scripts": 
-	{
+	"scripts": {
 		"start": "node server.js",
 		"dev": "nodemon server.js"
 	},
-  
-  
 	"keywords": [],
 	"author": "",
 	"license": "ISC",
 	"description": "",
-
-
-	"dependencies": 
-	{
+	"dependencies": {
+		"axios": "^1.13.2",
 		"bcrypt": "^6.0.0",
 		"cors": "^2.8.5",
 		"dotenv": "^17.2.3",
@@ -26,10 +19,7 @@
 		"jsonwebtoken": "^9.0.3",
 		"pg": "^8.16.3"
 	},
-
-
-	"devDependencies": 
-	{
+	"devDependencies": {
 		"nodemon": "^3.1.11"
 	}
 }

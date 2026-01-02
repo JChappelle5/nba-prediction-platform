@@ -18,6 +18,8 @@ require('./config/db');
 
 // Import routes
 const authRoutes = require('./routes/authRoutes');
+const gamesRoutes = require('./routes/gamesRoutes');
+const predictionsRoutes = require('./routes/predictionsRoutes');
 
 
 // Basic test route
@@ -36,6 +38,8 @@ app.get('/health', (req, res) =>
 
 // API routes
 app.use('/api/auth', authRoutes);
+app.use('/api/games', gamesRoutes);
+app.use('/api/predictions', predictionsRoutes);
 
 
 // Start server
