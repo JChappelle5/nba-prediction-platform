@@ -20,6 +20,7 @@ require('./config/db');
 const authRoutes = require('./routes/authRoutes');
 const gamesRoutes = require('./routes/gamesRoutes');
 const predictionsRoutes = require('./routes/predictionsRoutes');
+const leaderboardRoutes = require('./routes/leaderboardRoutes');
 
 
 // Basic test route
@@ -40,6 +41,7 @@ app.get('/health', (req, res) =>
 app.use('/api/auth', authRoutes);
 app.use('/api/games', gamesRoutes);
 app.use('/api/predictions', predictionsRoutes);
+app.use('/api/leaderboard', leaderboardRoutes);
 
 
 // Start server

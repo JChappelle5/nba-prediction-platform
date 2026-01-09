@@ -14,14 +14,14 @@ const createPrediction = async (req, res) =>
         }
 
         // Check if game exists and is 'scheduled'
-        const game = await pool.query( 'SELECT FROM games WHERE id = $1', [game_id]);
+        const game = await pool.query( 'SELECT * FROM games WHERE id = $1', [game_id]);
 
         if (game.rows.length === 0)
         {
             return res.status(404).json({ error: 'Game not found'});
         }
 
-        if (game.rows[0].status !== 'scheduled')
+        if (game.rows[0].status.trim() !== 'scheduled')
         {
             return res.status(400).json({ error: 'Cannot predict on a game that has already started or finished'});
         }
