@@ -8,6 +8,7 @@ const getUpcomingGames = async (req, res) =>
         const result = await pool.query(
             `SELECT
             g.id,
+            g.game_date,
             g.status,
             ht.id as home_team_id,
             ht.name as home_team_name,

@@ -53,6 +53,8 @@ async function fetchGames()
                 }
             });
 
+            
+
             const games = response.data.data;
             console.log(`Found ${games.length} games`);
 
@@ -82,19 +84,48 @@ async function fetchGames()
                     continue;
                 }
 
-                // Determine status
+                // Determine status based on period and scores
                 let status = 'scheduled';
-                if (game.status === 'Final')
+
+                // If period is 0, game hasn't started
+                if (game.period === 0) 
+                {
+                    status = 'scheduled';
+                }
+                // If period > 0 but game has no final scores, it's in progress
+                else if (game.period > 0 && game.period <= 4) 
+                {
+                    // Check if game is finished by looking at the time field
+                    // If time is empty string or "Final", the game is over
+                    if (game.time === '' || game.time === 'Final' || game.status === 'Final') 
+                    {
+                        status = 'finished';
+                    } 
+                    else 
+                    {
+                        status = 'in progress';
+                    }
+                }
+                // Overtime
+                else if (game.period >= 5) 
+                {
+                    if (game.time === '' || game.time === 'Final' || game.status === 'Final') 
+                    {
+                        status = 'finished';
+                    } 
+                    else 
+                    {
+                        status = 'in progress';
+                    }
+                }
+
+                if (game.period === 4 && game.home_team_score > 0 && game.visitor_team_score > 0 && !game.time) 
                 {
                     status = 'finished';
                 }
-                else if (game.status !== 'Final' && game.period > 0 ) 
-                {
-                    status = 'in_progress';
-                }
 
                 // Insert game into database
-                await pool.query(`INSERT INTO games (home_team_id, away_team_id, game_date, home_score, away_score, status) VALUES ($1, $2, $3, $4, $5, $6)`, [homeTeamId, awayTeamId, game.date, game.home_team_score || null, game.visitor_team_score || null, status]);
+                await pool.query(`INSERT INTO games (home_team_id, away_team_id, game_date, home_score, away_score, status) VALUES ($1, $2, $3, $4, $5, $6)`, [homeTeamId, awayTeamId, game.datetime, game.home_team_score || null, game.visitor_team_score || null, status]);
 
                 console.log(`Inserted: ${game.home_team.abbreviation} vs ${game.visitor_team.abbreviation} on ${game.date}`);
                 insertedCount++;
