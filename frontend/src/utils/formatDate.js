@@ -1,10 +1,8 @@
-export const formatGameDate = (dateString) => {
-  const date = new Date(dateString);
-  
-  // Just show the date in MM-DD-YYYY format
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate() - 1).padStart(2, '0');
-  const year = date.getFullYear();
+export const formatGameDate = (dateString) => 
+{
+  // Extracts YYYY-MM-DD from the datetime string
+  const datePart = dateString.split('T')[0] || dateString.split(' ')[0];
+  const [year, month, day] = datePart.split('-');
   
   return `${month}-${day}-${year}`;
 };

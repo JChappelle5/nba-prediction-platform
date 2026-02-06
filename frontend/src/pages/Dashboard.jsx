@@ -4,6 +4,18 @@ import { useAuth } from '../context/AuthContext';
 import { gamesAPI, predictionsAPI } from '../utils/api';
 import { formatGameDate } from '../utils/formatDate';
 
+// Map team abbreviations to ESPN logo names
+const getESPNTeamAbbr = (abbr) => 
+{
+  const mapping = 
+  {
+    'UTA': 'utah',
+    'NOP': 'no',
+
+  };
+  return mapping[abbr] || abbr.toLowerCase();
+};
+
 export default function Dashboard()
 {
     const [games, setGames] = useState([]);
@@ -103,30 +115,32 @@ export default function Dashboard()
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gray-900">
       {/* Header */}
-      <nav className="bg-white shadow-sm">
+      <nav className="bg-gray-800 shadow-lg border-b border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
-              <h1 className="text-xl font-bold text-gray-900">NBA Predictions</h1>
+              <h1 className="text-2xl font-bold text-white">🏀 NBA Predictions</h1>
             </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-gray-700">
-                Welcome, {user?.username}!
-              </span>
-              <span className="text-blue-600 font-semibold">
-                {user?.total_points} points
-              </span>
+            <div className="flex items-center space-x-6">
+              <div className="text-center">
+                <p className="text-xs text-gray-400">Welcome</p>
+                <p className="text-sm font-semibold text-white">{user?.username}</p>
+              </div>
+              <div className="text-center px-4 py-2 bg-blue-600 rounded-lg">
+                <p className="text-xs text-blue-200">Points</p>
+                <p className="text-lg font-bold text-white">{user?.total_points}</p>
+              </div>
               <button
                 onClick={() => navigate('/leaderboard')}
-                className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900"
+                className="px-4 py-2 text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-700 rounded-lg transition"
               >
                 Leaderboard
               </button>
               <button
                 onClick={handleLogout}
-                className="px-4 py-2 text-sm font-medium text-red-600 hover:text-red-800"
+                className="px-4 py-2 text-sm font-medium text-red-400 hover:text-red-300 hover:bg-gray-700 rounded-lg transition"
               >
                 Logout
               </button>
@@ -136,161 +150,194 @@ export default function Dashboard()
       </nav>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
         {error && (
-          <div className="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+          <div className="mb-6 bg-red-900 border border-red-700 text-red-200 px-4 py-3 rounded-lg">
             {error}
           </div>
         )}
 
-        {/* Upcoming Games */}
-        <div className="bg-white shadow overflow-hidden sm:rounded-lg mb-6">
-          <div className="px-4 py-5 sm:px-6">
-            <h2 className="text-lg leading-6 font-medium text-gray-900">
-              Upcoming Games
-            </h2>
-            <p className="mt-1 max-w-2xl text-sm text-gray-500">
-              Make your predictions before games start
-            </p>
-          </div>
-          <div className="border-t border-gray-200">
-            {games.length === 0 ? (
-              <div className="px-4 py-5 sm:px-6 text-gray-500">
-                No upcoming games available
-              </div>
-            ) : (
-              <ul className="divide-y divide-gray-200">
-                {games.map((game) => {
-                  const predicted = hasPredicted(game.id);
-                  const isSelected = selectedGame === game.id;
-                  
-                  return (
-                    <li key={game.id} className="px-4 py-4 sm:px-6">
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center justify-between">
-                            <p className="text-sm font-medium text-gray-900">
-                              {game.home_team_name} vs {game.away_team_name}
-                            </p>
-                            <p className="text-sm text-gray-500">
-                              {formatGameDate(game.game_date)}
-                            </p>
-                          </div>
-                          {predicted ? (
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 mt-2">
-                              Prediction submitted ✓
-                            </span>
-                          ) : isSelected ? (
-                            <div className="mt-3 flex space-x-3">
-                              <button
-                                onClick={() => setSelectedTeam(game.home_team_id)}
-                                className={`px-4 py-2 rounded ${
-                                  selectedTeam === game.home_team_id
-                                    ? 'bg-blue-600 text-white'
-                                    : 'bg-gray-200 text-gray-700'
-                                }`}
-                              >
-                                {game.home_team_abbreviation}
-                              </button>
-                              <button
-                                onClick={() => setSelectedTeam(game.away_team_id)}
-                                className={`px-4 py-2 rounded ${
-                                  selectedTeam === game.away_team_id
-                                    ? 'bg-blue-600 text-white'
-                                    : 'bg-gray-200 text-gray-700'
-                                }`}
-                              >
-                                {game.away_team_abbreviation}
-                              </button>
-                              <button
-                                onClick={handlePredictionSubmit}
-                                disabled={!selectedTeam || submitting}
-                                className="px-4 py-2 bg-green-600 text-white rounded disabled:bg-gray-400"
-                              >
-                                {submitting ? 'Submitting...' : 'Submit'}
-                              </button>
-                              <button
-                                onClick={() => {
-                                  setSelectedGame(null);
-                                  setSelectedTeam(null);
-                                }}
-                                className="px-4 py-2 bg-gray-300 text-gray-700 rounded"
-                              >
-                                Cancel
-                              </button>
-                            </div>
-                          ) : (
-                            <button
-                              onClick={() => setSelectedGame(game.id)}
-                              className="mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                            >
-                              Make Prediction
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-          </div>
+        {/* Section Title */}
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold text-white mb-2">Upcoming Games</h2>
+          <p className="text-gray-400">Make your predictions before games start</p>
         </div>
 
-        {/* Your Predictions */}
-        <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-          <div className="px-4 py-5 sm:px-6">
-            <h2 className="text-lg leading-6 font-medium text-gray-900">
-              Your Predictions
-            </h2>
+        {/* Games Grid */}
+        {games.length === 0 ? (
+          <div className="text-center py-12 bg-gray-800 rounded-lg">
+            <p className="text-gray-400 text-lg">No upcoming games available</p>
           </div>
-          <div className="border-t border-gray-200">
+        ) : (
+          
+          <div className="flex flex-col gap-4">
+            {games.map((game) => {
+              const predicted = hasPredicted(game.id);
+              const isSelected = selectedGame === game.id;
+              
+              return (
+                <div
+                  key={game.id}
+                  className="bg-gray-800 rounded-xl shadow-lg overflow-hidden border border-gray-700 hover:border-blue-500 transition-all duration-200"
+                >
+                  {/* Card Header - Date */}
+                  <div className="bg-gray-700 px-4 py-2 text-center">
+                    <p className="text-sm text-gray-300">{formatGameDate(game.game_date)}</p>
+                  </div>
+
+                  {/* Team Logos */}
+                  <div className="p-6 flex items-center justify-center space-x-8">
+                    {/* AWAY Team (was home) */}
+                    <div className="flex flex-col items-center flex-1">
+                      <img 
+                        src={`https://a.espncdn.com/combiner/i?img=/i/teamlogos/nba/500/${getESPNTeamAbbr(game.away_team_abbreviation)}.png&h=100&w=100`}
+                        alt={game.away_team_abbreviation}
+                        className="w-20 h-20 mb-3"
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = `https://via.placeholder.com/80/1F2937/FFFFFF?text=${game.away_team_abbreviation}`;
+                        }}
+                      />
+                      <span className="text-white font-semibold text-center">{game.away_team_abbreviation}</span>
+                    </div>
+                    
+                    {/* VS */}
+                    <div className="text-2xl font-bold text-gray-500">@</div>
+                    
+                    {/* HOME Team (was away) */}
+                    <div className="flex flex-col items-center flex-1">
+                      <img 
+                        src={`https://a.espncdn.com/combiner/i?img=/i/teamlogos/nba/500/${getESPNTeamAbbr(game.home_team_abbreviation)}.png&h=100&w=100`}
+                        alt={game.home_team_abbreviation}
+                        className="w-20 h-20 mb-3"
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = `https://via.placeholder.com/80/1F2937/FFFFFF?text=${game.home_team_abbreviation}`;
+                        }}
+                      />
+                      <span className="text-white font-semibold text-center">{game.home_team_abbreviation}</span>
+                    </div>
+                  </div>
+
+                  {/* Action Area */}
+                  <div className="px-6 pb-6">
+                    {predicted ? (
+                      <div className="bg-green-900 border border-green-700 rounded-lg px-4 py-3 text-center">
+                        <span className="text-green-300 font-medium">✓ Prediction Submitted</span>
+                      </div>
+                    ) : isSelected ? (
+                      <div className="space-y-3">
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={() => setSelectedTeam(game.away_team_id)}
+                            className={`flex-1 px-4 py-2 rounded-lg font-medium transition ${
+                              selectedTeam === game.away_team_id
+                                ? 'bg-blue-600 text-white'
+                                : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                            }`}
+                          >
+                            {game.away_team_abbreviation}
+                          </button>
+                          <button
+                            onClick={() => setSelectedTeam(game.home_team_id)}
+                            className={`flex-1 px-4 py-2 rounded-lg font-medium transition ${
+                              selectedTeam === game.home_team_id
+                                ? 'bg-blue-600 text-white'
+                                : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                            }`}
+                          >
+                            {game.home_team_abbreviation}
+                          </button>
+                        </div>
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={handlePredictionSubmit}
+                            disabled={!selectedTeam || submitting}
+                            className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 disabled:bg-gray-600 disabled:cursor-not-allowed transition"
+                          >
+                            {submitting ? 'Submitting...' : 'Submit'}
+                          </button>
+                          <button
+                            onClick={() => {
+                              setSelectedGame(null);
+                              setSelectedTeam(null);
+                            }}
+                            className="flex-1 px-4 py-2 bg-gray-700 text-gray-300 rounded-lg font-medium hover:bg-gray-600 transition"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => setSelectedGame(game.id)}
+                        className="w-full px-4 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition"
+                      >
+                        Make Prediction
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Your Predictions Section */}
+        <div className="bg-gray-800 rounded-xl shadow-lg overflow-hidden border border-gray-700">
+          <div className="bg-gray-700 px-6 py-4 border-b border-gray-600">
+            <h2 className="text-xl font-bold text-white">Your Predictions</h2>
+          </div>
+          <div className="divide-y divide-gray-700">
             {predictions.length === 0 ? (
-              <div className="px-4 py-5 sm:px-6 text-gray-500">
+              <div className="px-6 py-8 text-center text-gray-400">
                 No predictions yet. Start predicting above!
               </div>
             ) : (
-              <ul className="divide-y divide-gray-200">
-                {predictions.map((pred) => (
-                  <li key={pred.id} className="px-4 py-4 sm:px-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-gray-900">
-                          {pred.home_team_name} vs {pred.away_team_name}
-                        </p>
-                        <p className="text-sm text-gray-500">
-                          You predicted: {pred.predicted_team_name}
-                        </p>
-                        {pred.game_status === 'finished' && (
-                          <p className="text-sm mt-1">
+              predictions.map((pred) => (
+                <div key={pred.id} className="px-6 py-4 hover:bg-gray-750 transition">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <p className="text-white font-medium mb-1">
+                        {pred.away_team_name} @ {pred.home_team_name}
+                      </p>
+                      <p className="text-sm text-gray-400">
+                        You predicted: <span className="text-blue-400 font-medium">{pred.predicted_team_name}</span>
+                      </p>
+                      {pred.game_status === 'finished' && (
+                        <>
+                          <p className="text-sm text-gray-300 mt-1">
+                            Final Score: {pred.away_team_name} {pred.away_score} - {pred.home_team_name} {pred.home_score}
+                          </p>
+                          <p className="text-sm mt-2">
                             {pred.points_awarded > 0 ? (
-                              <span className="text-green-600 font-semibold">
+                              <span className="text-green-400 font-semibold">
                                 ✓ Correct! +{pred.points_awarded} points
                               </span>
                             ) : (
-                              <span className="text-red-600">
+                              <span className="text-red-400 font-semibold">
                                 ✗ Incorrect
                               </span>
                             )}
                           </p>
-                        )}
-                      </div>
-                      <div className="text-right">
-                        <p className="text-sm text-gray-500">
-                          {formatGameDate(pred.game_date)}
-                        </p>
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          pred.game_status === 'finished' 
-                            ? 'bg-gray-100 text-gray-800'
-                            : 'bg-yellow-100 text-yellow-800'
-                        }`}>
-                          {pred.game_status}
-                        </span>
-                      </div>
+                        </>
+                      )}
                     </div>
-                  </li>
-                ))}
-              </ul>
+                    <div className="text-right ml-4">
+                      <p className="text-sm text-gray-400 mb-2">
+                        {formatGameDate(pred.game_date)}
+                      </p>
+                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
+                        pred.game_status === 'finished' 
+                          ? 'bg-gray-700 text-gray-300'
+                          : 'bg-yellow-900 text-yellow-300'
+                      }`}>
+                        {pred.game_status}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))
             )}
           </div>
         </div>
